@@ -1,0 +1,1358 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  ChevronDown, 
+  Menu, 
+  X, 
+  BookOpen, 
+  Users, 
+  FileText, 
+  Image as ImageIcon, 
+  Award, 
+  Download, 
+  Phone, 
+  Mail, 
+  Search, 
+  Calendar, 
+  MapPin, 
+  ArrowRight, 
+  CheckCircle2, 
+  ExternalLink,
+  BookMarked,
+  Sparkles,
+  ChevronRight,
+  TrendingUp,
+  Clock,
+  UserCheck
+} from 'lucide-react';
+
+export default function App() {
+  // Navigation & Page State
+  const [currentPage, setCurrentPage] = useState('HOME');
+  const [currentSubPage, setCurrentSubPage] = useState('');
+  const [activeDesktopDropdown, setActiveDesktopDropdown] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeMobileDropdown, setActiveMobileDropdown] = useState(null);
+  
+  // Interactive Component States
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDept, setSelectedDept] = useState('All');
+  const [selectedFacultyRole, setSelectedFacultyRole] = useState('All');
+  const [selectedGalleryCategory, setSelectedGalleryCategory] = useState('All');
+  const [alumniForm, setAlumniForm] = useState({ name: '', batch: '', course: '', occupation: '', email: '', message: '' });
+  const [toast, setToast] = useState({ visible: false, message: '', type: 'success' });
+  const [simulatedDownloads, setSimulatedDownloads] = useState({});
+  const [openMagazineIndex, setOpenMagazineIndex] = useState(null);
+  
+  // Refs for tracking click outside
+  const navRef = useRef(null);
+
+  // Auto-hide toast after timeout
+  useEffect(() => {
+    if (toast.visible) {
+      const timer = setTimeout(() => {
+        setToast({ ...toast, visible: false });
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast.visible]);
+
+  // Click outside listener to close dropdowns
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (navRef.current && !navRef.current.contains(event.target)) {
+        setActiveDesktopDropdown(null);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const triggerToast = (message, type = 'success') => {
+    setToast({ visible: true, message, type });
+  };
+
+  // Navigation Options Mapping matching the image exactly
+  const navigationItems = [
+    { name: 'HOME', path: 'HOME' },
+    { 
+      name: 'UNION PANEL', 
+      path: 'UNION PANEL',
+      subOptions: [
+        { label: 'Student Executive Body', desc: 'Meet the student representatives and portfolios' },
+        { label: 'Senate Members', desc: 'Academic and extra-curricular decision makers' },
+        { label: 'Clubs & Societies', desc: 'Music, Drama, Science, and Literary Clubs' },
+        { label: 'Grievance Committee', desc: 'Direct support and reporting forms' }
+      ]
+    },
+    { 
+      name: 'ABOUT COH', 
+      path: 'ABOUT COH',
+      subOptions: [
+        { label: 'Vision & Mission', desc: 'Our baseline educational goals and future state' },
+        { label: 'History of College', desc: 'Timeline and foundation milestones from 1984' },
+        { label: 'Dean\'s Message', desc: 'A personal welcome from our campus director' },
+        { label: 'Governing Council', desc: 'Leadership structure and administrative policy' },
+        { label: 'Campus Map & Infrastructure', desc: 'Interactive floor layouts, farms and laboratories' }
+      ]
+    },
+    { 
+      name: 'DEPARTMENTS', 
+      path: 'DEPARTMENTS',
+      subOptions: [
+        { label: 'Fruit Science', desc: 'Cultivation practices, orchard planning, and pomology' },
+        { label: 'Vegetable Science', desc: 'Modern intensive crop husbandry and seed production' },
+        { label: 'Floriculture & Landscaping', desc: 'Ornamental horticulture, CAD layouts and turfing' },
+        { label: 'Plant Protection', desc: 'Entomology, pathology, biological controls and cures' },
+        { label: 'Post-Harvest Management', desc: 'Value-addition, storage tech, and food science' }
+      ]
+    },
+    { 
+      name: 'GALLERY', 
+      path: 'GALLERY',
+      subOptions: [
+        { label: 'Campus Landscapes', desc: 'Explore the 200+ acres of pristine farm fields' },
+        { label: 'Cultural Festivals', desc: 'Highlights from annual student fests and events' },
+        { label: 'Sports Tournaments', desc: 'Showcasing our victories and dynamic outdoor arenas' },
+        { label: 'Laboratory Work', desc: 'Hands-on practicals and student research projects' }
+      ]
+    },
+    { 
+      name: 'FACULTY', 
+      path: 'FACULTY',
+      subOptions: [
+        { label: 'All Academics', desc: 'Complete directory of research mentors and lecturers' },
+        { label: 'Department HODs', desc: 'Heads of specialized academic disciplines' },
+        { label: 'Research Specialists', desc: 'Staff focused on regional and global climate actions' },
+        { label: 'Administration Staff', desc: 'Support services, registrar office, and support' }
+      ]
+    },
+    { 
+      name: 'ALUMNI', 
+      path: 'ALUMNI',
+      subOptions: [
+        { label: 'Notable Alumni', desc: 'Distinguished professionals worldwide' },
+        { label: 'Alumni Association', desc: 'Networking chapters, membership cards, and forums' },
+        { label: 'Success Stories', desc: 'Interviews, profiles, and entrepreneurial routes' },
+        { label: 'Alumni Registry Form', desc: 'Connect back with the university archives' }
+      ]
+    },
+    { 
+      name: 'MAGAZINES', 
+      path: 'MAGAZINES',
+      subOptions: [
+        { label: 'Annual College Magazine', desc: 'The annual creative compilation' },
+        { label: 'Research Journals', desc: 'Peer-reviewed innovations in horticultural sciences' },
+        { label: 'Quarterly Newsletters', desc: 'Campus bulletins and local agriculture advances' }
+      ]
+    },
+    { 
+      name: 'DOWNLOADS', 
+      path: 'DOWNLOADS',
+      subOptions: [
+        { label: 'Academic Syllabus', desc: 'Syllabi and course requirements for UG and PG' },
+        { label: 'Admission Prospectus', desc: 'Forms, fee structures, and guidelines' },
+        { label: 'Examination Schedules', desc: 'Upcoming semester finals and practical timings' },
+        { label: 'Academic Calendar', desc: 'Holiday lists, events, and seminar timelines' }
+      ]
+    }
+  ];
+
+  // Helper to handle clicks
+  const handleNavClick = (mainPath, subPath = '') => {
+    setCurrentPage(mainPath);
+    setCurrentSubPage(subPath);
+    setActiveDesktopDropdown(null);
+    setIsMobileMenuOpen(false);
+    setActiveMobileDropdown(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (subPath) {
+      triggerToast(`Mapsd to ${mainPath} › ${subPath}`, 'info');
+    } else {
+      triggerToast(`Mapsd to ${mainPath}`, 'info');
+    }
+  };
+
+  // Handle Mock Forms & Files
+  const handleAlumniSubmit = (e) => {
+    e.preventDefault();
+    if (!alumniForm.name || !alumniForm.email || !alumniForm.batch) {
+      triggerToast('Please fill out Name, Email, and Graduation Batch.', 'error');
+      return;
+    }
+    triggerToast(`Thank you, ${alumniForm.name}! Your alumni registration request has been submitted.`, 'success');
+    setAlumniForm({ name: '', batch: '', course: '', occupation: '', email: '', message: '' });
+  };
+
+  const handleDownload = (fileName) => {
+    setSimulatedDownloads(prev => ({ ...prev, [fileName]: 10 }));
+    let progress = 10;
+    const interval = setInterval(() => {
+      progress += 30;
+      if (progress >= 100) {
+        clearInterval(interval);
+        setSimulatedDownloads(prev => ({ ...prev, [fileName]: 100 }));
+        triggerToast(`Successfully downloaded "${fileName}"`, 'success');
+        setTimeout(() => {
+          setSimulatedDownloads(prev => {
+            const copy = { ...prev };
+            delete copy[fileName];
+            return copy;
+          });
+        }, 1500);
+      } else {
+        setSimulatedDownloads(prev => ({ ...prev, [fileName]: progress }));
+      }
+    }, 250);
+  };
+
+  // Mock Data Sets
+  const facultyData = [
+    { name: 'Dr. Aranya Sharma', role: 'Department HOD', dept: 'Fruit Science', email: 'aranya.s@coh.edu', rating: '5.0', research: 'Genetic adaptations of tropical mangoes in Western Ghats' },
+    { name: 'Prof. Vikram Hegde', role: 'Academic Officers', dept: 'Floriculture & Landscaping', email: 'v.hegde@coh.edu', rating: '4.9', research: 'CAD algorithms for sustainable community parks' },
+    { name: 'Dr. Evelyn Thomas', role: 'Research Specialists', dept: 'Plant Protection', email: 'evelyn.t@coh.edu', rating: '4.8', research: 'Biocontrol of invasive thrips on pepper plantations' },
+    { name: 'Dr. Rajesh Deshmukh', role: 'Department HOD', dept: 'Vegetable Science', email: 'r.deshmukh@coh.edu', rating: '4.9', research: 'High-density organic carrot hydroponics' },
+    { name: 'Dr. Priya Nair', role: 'Research Specialists', dept: 'Post-Harvest Management', email: 'priya.nair@coh.edu', rating: '4.7', research: 'Controlled atmospheric packaging for long-distance cold-chain transit' },
+    { name: 'Prof. Amit Kulkarni', role: 'Academic Officers', dept: 'Plant Protection', email: 'amit.k@coh.edu', rating: '4.6', research: 'Fungal pathology of exotic orchid hybrids' },
+    { name: 'Mrs. Shaila Rao', role: 'Administration Staff', dept: 'Academic Affairs Office', email: 'shaila.rao@coh.edu', rating: 'N/A', research: 'Student relations and registry optimization' }
+  ];
+
+  const galleryImages = [
+    { title: 'Central Glasshouse Complex', category: 'Campus Landscapes', desc: 'Precision climate-controlled environment for research crops.' },
+    { title: 'Nectar Harvest Practicals', category: 'Laboratory Work', desc: 'Students observing honeybee hives and pollination protocols.' },
+    { title: 'Varna-2026 Cultural Gala', category: 'Cultural Festivals', desc: 'Traditional folk performance during the annual harvest celebration.' },
+    { title: 'Inter-College Football Finals', category: 'Sports Tournaments', desc: 'COH Warriors taking home the gold trophy in style.' },
+    { title: 'Pomology Pomona Orchard', category: 'Campus Landscapes', desc: 'Organic fruit orchards stretching across the southern ridges.' },
+    { title: 'Bio-Technology Research Lab', category: 'Laboratory Work', desc: 'Active isolation of organic disease-resistant crop genes.' }
+  ];
+
+  const magazinesList = [
+    { title: 'HORTICULTURE TODAY - Annual issue', year: '2026 Edition', pages: 112, downloads: '1.4k', coverColor: 'from-amber-600 to-amber-900', description: 'Highlighting state-of-the-art organic micro-irrigation systems, innovative hydroponic layouts, and full student poems, photography, and essays.', contents: ['Dean\'s Welcome Speech', 'Post-Harvest Innovations', 'Alumni Spotlights', 'Creative Corner: Poetry & Sketches'] },
+    { title: 'COH AGRI-VOICES', year: 'Spring 2026 Newsletter', pages: 24, downloads: '480+', coverColor: 'from-teal-600 to-teal-900', description: 'Brief snapshot of campus life, upcoming national symposiums, state agricultural grants, and inter-collegiate sports championship matches.', contents: ['Inter-College Sports Victory', 'Upcoming Guest Lecture Schedules', 'Hostel Infrastructure Renovation Reports'] },
+    { title: 'JOURNAL OF EXPERIMENTAL FLORA', year: 'Volume 14', pages: 88, downloads: '920+', coverColor: 'from-emerald-700 to-emerald-950', description: 'Academic compilation highlighting climate adaptation, hybrid pollination studies, and pathogen resistance protocols compiled by COH researchers.', contents: ['Soil Microbiome Adaptability', 'Pathogen Resistance in Orchids', 'Controlled Breeding Experiments'] }
+  ];
+
+  const downloadsList = [
+    { title: 'B.Sc. (Hons.) Horticulture Comprehensive Syllabus', category: 'Academic Syllabus', size: '2.4 MB', format: 'PDF' },
+    { title: 'COH Admission Prospectus & Guidelines (2026-27)', category: 'Admission Prospectus', size: '5.1 MB', format: 'PDF' },
+    { title: 'Odd Semester End-Term Theory Exam Schedule', category: 'Examination Schedules', size: '420 KB', format: 'PDF' },
+    { title: 'Academic Event Calendar (Revised June 2026)', category: 'Academic Calendar', size: '1.2 MB', format: 'PDF' },
+    { title: 'Post-Graduate M.Sc. Research Protocol Manual', category: 'Academic Syllabus', size: '3.8 MB', format: 'PDF' },
+    { title: 'Scholarship Application & Financial Assistance Forms', category: 'Admission Prospectus', size: '980 KB', format: 'PDF' }
+  ];
+
+  return (
+    <div className="min-h-screen bg-[#121212] text-gray-100 font-sans selection:bg-amber-500 selection:text-black flex flex-col antialiased">
+      
+      {/* Dynamic Toast System */}
+      {toast.visible && (
+        <div className="fixed bottom-6 right-6 z-50 animate-bounce max-w-sm bg-zinc-900 border border-amber-500/40 text-gray-100 rounded-xl shadow-2xl p-4 flex items-center space-x-3">
+          <div className="bg-amber-500/10 p-2 rounded-lg text-amber-400">
+            {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5 text-emerald-400" /> : <Sparkles className="w-5 h-5 text-amber-400" />}
+          </div>
+          <div className="flex-1 text-sm font-medium">{toast.message}</div>
+          <button 
+            onClick={() => setToast({ ...toast, visible: false })}
+            className="text-gray-400 hover:text-white transition"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* HEADER SECTION (Aesthetic precisely references image navigation bar) */}
+      <header className="sticky top-0 z-40 bg-[#1e1d1a] border-b border-zinc-800 shadow-xl" ref={navRef}>
+        {/* Top Mini Branding Block */}
+        <div className="bg-gradient-to-r from-[#171614] via-[#242320] to-[#171614] text-xs py-2 px-4 border-b border-zinc-900 flex justify-between items-center text-zinc-400">
+          <div className="flex items-center space-x-4">
+            <span className="flex items-center gap-1 text-amber-500 font-semibold tracking-wider uppercase">
+              <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              COH Portal
+            </span>
+            <span className="hidden sm:inline border-l border-zinc-800 pl-4">NAAC Accredited Grade A++</span>
+          </div>
+          <div className="flex items-center space-x-4 text-xs font-mono">
+            <span>Admin Desk: +91 99515 56308</span>
+            <span>|</span>
+            <span>cohrnagar@gmail.com</span>
+          </div>
+        </div>
+
+        {/* Primary Navbar Container matching options image */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            
+            {/* College Logo / Title */}
+            <div 
+              onClick={() => handleNavClick('HOME')}
+              className="flex items-center space-x-3 cursor-pointer group"
+            >
+              <div className="bg-gradient-to-br from-amber-500 to-amber-700 p-2 rounded-lg transition-transform group-hover:scale-105 shadow-md">
+                <BookOpen className="w-6 h-6 text-black" />
+              </div>
+              <div>
+                <span className="font-bold text-lg tracking-wider text-white flex items-center gap-1 group-hover:text-amber-400 transition-colors">
+                  COH <span className="text-amber-500 font-light text-sm tracking-normal">RAJENDRANAGAR</span>
+                </span>
+                <p className="text-[9px] text-zinc-400 tracking-wider uppercase -mt-1 hidden xs:block">
+                  College of Horticulture
+                </p>
+              </div>
+            </div>
+
+            {/* Desktop Navigation Links (Directly derived from the options shown in your image) */}
+            <nav className="hidden lg:flex items-center space-x-1">
+              {navigationItems.map((item) => {
+                const hasSub = !!item.subOptions;
+                const isActive = currentPage === item.path;
+                
+                return (
+                  <div key={item.name} className="relative">
+                    {hasSub ? (
+                      <button
+                        onClick={() => setActiveDesktopDropdown(activeDesktopDropdown === item.name ? null : item.name)}
+                        className={`px-3 py-2 rounded-md text-xs font-bold tracking-widest uppercase transition-all duration-150 flex items-center space-x-1 border-b-2 ${
+                          isActive 
+                            ? 'text-amber-400 border-amber-500 bg-zinc-900/50' 
+                            : 'text-zinc-300 hover:text-white border-transparent hover:bg-zinc-800/35'
+                        }`}
+                      >
+                        <span>{item.name}</span>
+                        <ChevronDown className={`w-3.5 h-3.5 transform transition-transform duration-200 ${activeDesktopDropdown === item.name ? 'rotate-180 text-amber-400' : 'text-zinc-500'}`} />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleNavClick(item.path)}
+                        className={`px-3 py-2 rounded-md text-xs font-bold tracking-widest uppercase transition-all duration-150 border-b-2 ${
+                          isActive 
+                            ? 'text-amber-400 border-amber-500 bg-zinc-900/50' 
+                            : 'text-zinc-300 hover:text-white border-transparent hover:bg-zinc-800/35'
+                        }`}
+                      >
+                        {item.name}
+                      </button>
+                    )}
+
+                    {/* Dropdown Menu Overlay */}
+                    {hasSub && activeDesktopDropdown === item.name && (
+                      <div className="absolute left-0 mt-2 w-72 bg-[#1b1a18] border border-zinc-800 rounded-xl shadow-2xl py-2 z-50 animate-fade-in-down divide-y divide-zinc-900">
+                        <div className="px-3 py-2 bg-[#21201d] text-[10px] font-semibold text-amber-500 tracking-wider uppercase rounded-t-lg">
+                          Explore {item.name}
+                        </div>
+                        <div className="py-1">
+                          {item.subOptions.map((sub, sIdx) => (
+                            <button
+                              key={sIdx}
+                              onClick={() => handleNavClick(item.path, sub.label)}
+                              className="w-full text-left px-4 py-2.5 text-xs hover:bg-amber-500/10 text-zinc-300 hover:text-amber-400 transition flex items-start gap-2 group/sub"
+                            >
+                              <ChevronRight className="w-3.5 h-3.5 mt-0.5 text-zinc-600 group-hover/sub:text-amber-500 transition-colors shrink-0" />
+                              <div>
+                                <p className="font-semibold">{sub.label}</p>
+                                <p className="text-[10px] text-zinc-500 group-hover/sub:text-zinc-300 leading-tight mt-0.5">{sub.desc}</p>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </nav>
+
+            {/* Mobile / Tablet Menu Button Toggle */}
+            <div className="flex items-center lg:hidden">
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="inline-flex items-center justify-center p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 focus:outline-none transition"
+              >
+                {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        {/* Mobile Navigation Panel */}
+        {isMobileMenuOpen && (
+          <div className="lg:hidden bg-[#1e1d1a] border-t border-zinc-800 max-h-[calc(100vh-4rem)] overflow-y-auto">
+            <div className="px-2 pt-2 pb-4 space-y-1">
+              {navigationItems.map((item) => {
+                const hasSub = !!item.subOptions;
+                const isSelected = currentPage === item.path;
+                const isSubExpanded = activeMobileDropdown === item.name;
+
+                return (
+                  <div key={item.name} className="border-b border-zinc-900 pb-1">
+                    {hasSub ? (
+                      <div>
+                        <button
+                          onClick={() => setActiveMobileDropdown(isSubExpanded ? null : item.name)}
+                          className="w-full flex items-center justify-between px-3 py-2.5 text-xs font-bold tracking-widest uppercase text-zinc-300 hover:text-white hover:bg-zinc-800/40 rounded-lg"
+                        >
+                          <span className={isSelected ? 'text-amber-400' : ''}>{item.name}</span>
+                          <ChevronDown className={`w-4 h-4 transform transition-transform ${isSubExpanded ? 'rotate-180 text-amber-500' : 'text-zinc-600'}`} />
+                        </button>
+                        
+                        {isSubExpanded && (
+                          <div className="pl-4 pr-2 py-1 bg-black/20 rounded-md mt-1 space-y-1">
+                            {item.subOptions.map((sub, sIdx) => (
+                              <button
+                                key={sIdx}
+                                onClick={() => handleNavClick(item.path, sub.label)}
+                                className={`w-full text-left px-3 py-2 text-xs rounded-md block hover:bg-zinc-800 ${
+                                  currentSubPage === sub.label ? 'text-amber-400 font-semibold' : 'text-zinc-400'
+                                }`}
+                              >
+                                <p className="font-medium">{sub.label}</p>
+                                <p className="text-[10px] text-zinc-600">{sub.desc}</p>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => handleNavClick(item.path)}
+                        className={`w-full text-left px-3 py-2.5 text-xs font-bold tracking-widest uppercase rounded-lg ${
+                          isSelected ? 'text-amber-400 bg-zinc-900/60 font-black' : 'text-zinc-300 hover:text-white'
+                        }`}
+                      >
+                        {item.name}
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </header>
+
+      {/* SUB-HEADER / HERO BRANDING COVER */}
+      <section className="relative overflow-hidden bg-gradient-to-b from-[#1b1a18] via-[#121212] to-[#121212] py-8 border-b border-zinc-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            
+            <div>
+              {/* Breadcrumb marker */}
+              <div className="flex items-center space-x-2 text-xs text-zinc-500 font-semibold uppercase tracking-wider mb-2">
+                <span>COH ACADEMIC PORTAL</span>
+                <ChevronRight className="w-3.5 h-3.5 text-zinc-700" />
+                <span className="text-amber-500 font-bold">{currentPage}</span>
+                {currentSubPage && (
+                  <>
+                    <ChevronRight className="w-3.5 h-3.5 text-zinc-700" />
+                    <span className="text-zinc-300">{currentSubPage}</span>
+                  </>
+                )}
+              </div>
+              <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight uppercase">
+                {currentSubPage || currentPage}
+              </h1>
+              <p className="text-xs text-zinc-400 mt-1 max-w-2xl">
+                {currentPage === 'HOME' && "Welcome to Sri Konda Laxman Telangana Horticultural University component college. Championing agricultural technology, innovative soil experiments, and hands-on farm pedagogy."}
+                {currentPage === 'UNION PANEL' && "Discover our vibrant student environment, representing the hearts, interests, and creative activities of our campus community."}
+                {currentPage === 'ABOUT COH' && "Explore the heritage, vision, rules, and administrative milestones defining the College since 1984."}
+                {currentPage === 'DEPARTMENTS' && "Specialized divisions delivering elite training, advanced field laboratories, and practical career development."}
+                {currentPage === 'GALLERY' && "Visual journey documenting student successes, laboratory achievements, and organic floricultural fields."}
+                {currentPage === 'FACULTY' && "Meet our industry-accredited scholars, veteran agronomists, and academic steering advisors."}
+                {currentPage === 'ALUMNI' && "Our network of international horticultural consultants, food administrators, and global researchers."}
+                {currentPage === 'MAGAZINES' && "Browse current and legacy editions of the COH annual publications and peer-reviewed research."}
+                {currentPage === 'DOWNLOADS' && "Instant access to digital syllabus copies, administrative forms, and the official university calendar."}
+              </p>
+            </div>
+
+            {/* Quick-links widget */}
+            <div className="flex flex-wrap items-center gap-2">
+              <button 
+                onClick={() => handleNavClick('DOWNLOADS', 'Admission Prospectus')}
+                className="bg-amber-500 hover:bg-amber-600 text-black text-xs font-bold py-2 px-3.5 rounded-lg transition-colors flex items-center gap-1.5 shadow-lg shadow-amber-500/10"
+              >
+                <span>Admission 2026-27</span>
+                <ExternalLink className="w-3 h-3" />
+              </button>
+              <button 
+                onClick={() => handleNavClick('UNION PANEL', 'Clubs & Societies')}
+                className="bg-zinc-800 hover:bg-zinc-700 text-gray-200 text-xs font-semibold py-2 px-3.5 rounded-lg transition-colors border border-zinc-700"
+              >
+                Join Student Clubs
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        {/* Backdrop Graphic elements */}
+        <div className="absolute right-0 top-0 w-96 h-full bg-radial-gradient from-amber-500/5 to-transparent pointer-events-none"></div>
+      </section>
+
+      {/* DYNAMIC MAIN CONTENT RENDERING BASE */}
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        
+        {/* ==================== PAGE: HOME ==================== */}
+        {currentPage === 'HOME' && (
+          <div className="space-y-12">
+            
+            {/* Grid Spotlights Banner */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              
+              {/* Announcement Board Carousel widget */}
+              <div className="lg:col-span-2 bg-gradient-to-br from-[#1d1c1a] to-[#121211] border border-zinc-800/80 rounded-2xl p-6 relative overflow-hidden">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <span className="p-1.5 bg-amber-500/10 rounded-lg text-amber-500">
+                      <Calendar className="w-5 h-5" />
+                    </span>
+                    <h3 className="font-bold text-white text-base tracking-wider uppercase">Live Bulletins & Announcements</h3>
+                  </div>
+                  <span className="text-[10px] bg-emerald-500/10 text-emerald-400 font-bold tracking-widest uppercase px-2 py-0.5 rounded border border-emerald-500/20">
+                    Live Updates
+                  </span>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="bg-zinc-900/60 p-3.5 rounded-xl border border-zinc-800/50 hover:border-zinc-700 transition flex gap-3">
+                    <span className="text-amber-500 font-mono font-bold text-xs bg-amber-500/10 p-2.5 rounded-lg flex flex-col items-center justify-center h-12 w-12 shrink-0">
+                      <span>24</span>
+                      <span className="text-[9px] uppercase">Jun</span>
+                    </span>
+                    <div>
+                      <h4 className="text-xs font-bold text-gray-100 hover:text-amber-400 transition-colors cursor-pointer">
+                        National Seminar on High-Density Mango Planting in Semi-Arid Tropics
+                      </h4>
+                      <p className="text-xs text-zinc-400 mt-1">Join Guest Speaker Prof. S. Dr. Murthy in the main auditorium. Registrations close this Thursday at noon.</p>
+                      <button onClick={() => triggerToast("Registration request saved! We will send the conference link.", "success")} className="text-[11px] text-amber-500 hover:underline mt-2 flex items-center gap-1">
+                        Register for Webinar <ArrowRight className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="bg-zinc-900/60 p-3.5 rounded-xl border border-zinc-800/50 hover:border-zinc-700 transition flex gap-3">
+                    <span className="text-emerald-500 font-mono font-bold text-xs bg-emerald-500/10 p-2.5 rounded-lg flex flex-col items-center justify-center h-12 w-12 shrink-0">
+                      <span>18</span>
+                      <span className="text-[9px] uppercase">Jun</span>
+                    </span>
+                    <div>
+                      <h4 className="text-xs font-bold text-gray-100">
+                        B.Sc. Admission Application Period 2026 Open Online
+                      </h4>
+                      <p className="text-xs text-zinc-400 mt-1">Students can now download the 6th Dean’s recommendation-aligned syllabus & prospectus guidelines direct from the footer downloads.</p>
+                      <button onClick={() => handleNavClick('DOWNLOADS', 'Admission Prospectus')} className="text-[11px] text-amber-500 hover:underline mt-2 flex items-center gap-1">
+                        Read Prospectus <ArrowRight className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="bg-zinc-900/60 p-3.5 rounded-xl border border-zinc-800/50 hover:border-zinc-700 transition flex gap-3">
+                    <span className="text-zinc-400 font-mono font-bold text-xs bg-zinc-800/50 p-2.5 rounded-lg flex flex-col items-center justify-center h-12 w-12 shrink-0">
+                      <span>12</span>
+                      <span className="text-[9px] uppercase">Jun</span>
+                    </span>
+                    <div>
+                      <h4 className="text-xs font-bold text-gray-100">
+                        Alumni Placement Drive: Bio-Safety Laboratories India
+                      </h4>
+                      <p className="text-xs text-zinc-400 mt-1">Interviews scheduled for the PG research cohort. Contact placement cell for slot allocation.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Statistics & Quick Counters Card */}
+              <div className="bg-gradient-to-br from-[#1b1b19] to-[#0f0f0e] border border-zinc-800/80 rounded-2xl p-6 flex flex-col justify-between">
+                <div>
+                  <h3 className="font-bold text-white text-base tracking-wider uppercase mb-1">Campus Legacy</h3>
+                  <p className="text-xs text-zinc-400">Pioneering horticultural technology and scientific farming research for over four decades.</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 my-6">
+                  <div className="p-3 bg-zinc-900/80 rounded-xl border border-zinc-800 text-center">
+                    <span className="block text-xl font-black text-amber-500 font-mono">203+</span>
+                    <span className="text-[10px] text-zinc-400 uppercase tracking-widest">Acre Farm</span>
+                  </div>
+                  <div className="p-3 bg-zinc-900/80 rounded-xl border border-zinc-800 text-center">
+                    <span className="block text-xl font-black text-amber-500 font-mono">8+</span>
+                    <span className="text-[10px] text-zinc-400 uppercase tracking-widest">Research Labs</span>
+                  </div>
+                  <div className="p-3 bg-zinc-900/80 rounded-xl border border-zinc-800 text-center">
+                    <span className="block text-xl font-black text-amber-500 font-mono">200+</span>
+                    <span className="text-[10px] text-zinc-400 uppercase tracking-widest">Annual Intake</span>
+                  </div>
+                  <div className="p-3 bg-zinc-900/80 rounded-xl border border-zinc-800 text-center">
+                    <span className="block text-xl font-black text-amber-500 font-mono">1,400+</span>
+                    <span className="text-[10px] text-zinc-400 uppercase tracking-widest">Global Alumni</span>
+                  </div>
+                </div>
+
+                <button 
+                  onClick={() => handleNavClick('ABOUT COH', 'History of College')}
+                  className="w-full bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800 text-xs py-2.5 rounded-xl font-semibold flex items-center justify-center gap-1"
+                >
+                  <span>Explore History & Chronology</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+
+            </div>
+
+            {/* Quick Interactive Grid mapping to the sub-dropdown paths */}
+            <div>
+              <h3 className="text-sm font-bold text-zinc-400 tracking-widest uppercase mb-6 flex items-center gap-2">
+                <span className="w-1.5 h-3 bg-amber-500 inline-block"></span>
+                Quick Portal Shortcuts
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                
+                <div 
+                  onClick={() => handleNavClick('UNION PANEL', 'Student Executive Body')}
+                  className="bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 p-4 rounded-xl cursor-pointer hover:border-amber-500/40 transition group"
+                >
+                  <Users className="w-5 h-5 text-amber-500 group-hover:scale-110 transition-transform mb-3" />
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider group-hover:text-amber-400">Union Panel</h4>
+                  <p className="text-[11px] text-zinc-500 leading-tight mt-1">Elected student leaders, representative archives, and event organizers.</p>
+                </div>
+
+                <div 
+                  onClick={() => handleNavClick('DEPARTMENTS', 'Fruit Science')}
+                  className="bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 p-4 rounded-xl cursor-pointer hover:border-amber-500/40 transition group"
+                >
+                  <BookOpen className="w-5 h-5 text-amber-500 group-hover:scale-110 transition-transform mb-3" />
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider group-hover:text-amber-400">Department Labs</h4>
+                  <p className="text-[11px] text-zinc-500 leading-tight mt-1">Pomology, floriculture, plant breeding, and active research stations.</p>
+                </div>
+
+                <div 
+                  onClick={() => handleNavClick('MAGAZINES', 'Annual College Magazine')}
+                  className="bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 p-4 rounded-xl cursor-pointer hover:border-amber-500/40 transition group"
+                >
+                  <BookMarked className="w-5 h-5 text-amber-500 group-hover:scale-110 transition-transform mb-3" />
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider group-hover:text-amber-400">Annual Magazines</h4>
+                  <p className="text-[11px] text-zinc-500 leading-tight mt-1">Digital publications, creative columns, and past literary editions.</p>
+                </div>
+
+                <div 
+                  onClick={() => handleNavClick('DOWNLOADS', 'Academic Syllabus')}
+                  className="bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 p-4 rounded-xl cursor-pointer hover:border-amber-500/40 transition group"
+                >
+                  <Download className="w-5 h-5 text-amber-500 group-hover:scale-110 transition-transform mb-3" />
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider group-hover:text-amber-400">Downloads Hub</h4>
+                  <p className="text-[11px] text-zinc-500 leading-tight mt-1">B.Sc/M.Sc Syllabi, fee structure tables, and academic calendars.</p>
+                </div>
+
+              </div>
+            </div>
+
+            {/* Simulated Interactive Principal Desk Quote */}
+            <div className="bg-gradient-to-r from-amber-500/10 to-amber-600/5 border border-amber-500/20 rounded-2xl p-6 flex flex-col md:flex-row items-center gap-6">
+              <div className="bg-amber-500/10 p-4 rounded-xl text-amber-400 shrink-0">
+                <Award className="w-10 h-10" />
+              </div>
+              <div>
+                <span className="text-[10px] text-amber-500 font-bold tracking-widest uppercase">Dean\'s Core Policy</span>
+                <blockquote className="text-sm font-semibold text-gray-200 mt-1 italic">
+                  "At COH Rajendranagar, our students don't just study botany; they engineer resilience. Our experimental research labs, sprawling instructional farms, and high-tech orchards prepare the next wave of global agronomists."
+                </blockquote>
+                <p className="text-xs font-bold text-white mt-2">- Dr. S. K. Venkatraman, Executive Dean of Horticulture Admissions</p>
+              </div>
+            </div>
+
+          </div>
+        )}
+
+
+        {/* ==================== PAGE: UNION PANEL ==================== */}
+        {currentPage === 'UNION PANEL' && (
+          <div className="space-y-8 animate-fade-in">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+              <h3 className="text-base font-bold text-white tracking-wide uppercase mb-2">Student Representative Council (Varna-2026)</h3>
+              <p className="text-xs text-zinc-400">The Student Union serves as the bridge between administration and the academic body. They coordinate the campus life calendar, hostels, and sports tournaments.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Leader Card 1 */}
+              <div className="bg-zinc-900/80 border border-zinc-800 rounded-xl p-5 hover:border-amber-500/30 transition flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-[9px] bg-amber-500/10 text-amber-400 font-extrabold tracking-widest px-2 py-0.5 rounded border border-amber-500/20">PRESIDENT</span>
+                    <UserCheck className="w-4 h-4 text-amber-500" />
+                  </div>
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">Amanpreet Singh</h4>
+                  <p className="text-[10px] text-zinc-500">Batch 2023 | IV Year B.Sc. (Hons)</p>
+                  <p className="text-xs text-zinc-400 mt-3 italic leading-relaxed">"Striving to optimize digital resources for all research labs and expanding off-campus field visits."</p>
+                </div>
+                <button onClick={() => triggerToast("Direct chat is disabled. Please contact union representative email.", "info")} className="text-[11px] text-amber-500 hover:underline mt-4 text-left">Contact Representative →</button>
+              </div>
+
+              {/* Leader Card 2 */}
+              <div className="bg-zinc-900/80 border border-zinc-800 rounded-xl p-5 hover:border-amber-500/30 transition flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-[9px] bg-amber-500/10 text-amber-400 font-extrabold tracking-widest px-2 py-0.5 rounded border border-amber-500/20">VICE PRESIDENT</span>
+                    <UserCheck className="w-4 h-4 text-amber-500" />
+                  </div>
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">Anjali Deshpande</h4>
+                  <p className="text-[10px] text-zinc-500">Batch 2024 | III Year B.Sc</p>
+                  <p className="text-xs text-zinc-400 mt-3 italic leading-relaxed">"Dedicated to empowering girls\' sports development and launching the campus organic compost startup initiative."</p>
+                </div>
+                <button onClick={() => triggerToast("Direct chat is disabled. Please contact union representative email.", "info")} className="text-[11px] text-amber-500 hover:underline mt-4 text-left">Contact Representative →</button>
+              </div>
+
+              {/* Leader Card 3 */}
+              <div className="bg-zinc-900/80 border border-zinc-800 rounded-xl p-5 hover:border-amber-500/30 transition flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-[9px] bg-amber-500/10 text-amber-400 font-extrabold tracking-widest px-2 py-0.5 rounded border border-amber-500/20">SPORTS SECRETARY</span>
+                    <UserCheck className="w-4 h-4 text-amber-500" />
+                  </div>
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">Rahul Krishnan</h4>
+                  <p className="text-[10px] text-zinc-500">Batch 2023 | IV Year B.Sc</p>
+                  <p className="text-xs text-zinc-400 mt-3 italic leading-relaxed">"Focusing on inter-campus cricket tournament organization and athletic gear upgrades in hostels."</p>
+                </div>
+                <button onClick={() => triggerToast("Direct chat is disabled. Please contact union representative email.", "info")} className="text-[11px] text-amber-500 hover:underline mt-4 text-left">Contact Representative →</button>
+              </div>
+
+              {/* Leader Card 4 */}
+              <div className="bg-zinc-900/80 border border-zinc-800 rounded-xl p-5 hover:border-amber-500/30 transition flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-[9px] bg-amber-500/10 text-amber-400 font-extrabold tracking-widest px-2 py-0.5 rounded border border-amber-500/20">CULTURAL COORDINATOR</span>
+                    <UserCheck className="w-4 h-4 text-amber-500" />
+                  </div>
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">Meghna S.</h4>
+                  <p className="text-[10px] text-zinc-500">Batch 2024 | III Year B.Sc</p>
+                  <p className="text-xs text-zinc-400 mt-3 italic leading-relaxed">"Promoting student art, annual horticultural rangoli competitions, and regional harvest drama festivals."</p>
+                </div>
+                <button onClick={() => triggerToast("Direct chat is disabled. Please contact union representative email.", "info")} className="text-[11px] text-amber-500 hover:underline mt-4 text-left">Contact Representative →</button>
+              </div>
+            </div>
+
+            {/* Clubs & Societies Tab Section */}
+            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+              <h3 className="text-sm font-bold text-white uppercase tracking-widest mb-4">Official Student Clubs</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                <div className="p-4 bg-[#1b1a18] rounded-xl border border-zinc-800">
+                  <h4 className="text-xs font-bold text-amber-500 uppercase tracking-wider">The Fine Arts Club</h4>
+                  <p className="text-xs text-zinc-400 mt-2">Nurturing creative drawing, campus murals, pottery work with organic clay, and flower arrangement competitions.</p>
+                  <span className="inline-block text-[10px] bg-zinc-800 text-zinc-400 rounded px-2 py-0.5 mt-4">Head: Mr. Bangara Chuluvaiah</span>
+                </div>
+
+                <div className="p-4 bg-[#1b1a18] rounded-xl border border-zinc-800">
+                  <h4 className="text-xs font-bold text-amber-500 uppercase tracking-wider">The Science & Floras Club</h4>
+                  <p className="text-xs text-zinc-400 mt-2">Workshops, agricultural startup incubation pitch programs, organic fertilizer formulas, and hybrid breeding discussions.</p>
+                  <span className="inline-block text-[10px] bg-zinc-800 text-zinc-400 rounded px-2 py-0.5 mt-4">Advisor: Dr. V. Srinivasa</span>
+                </div>
+
+                <div className="p-4 bg-[#1b1a18] rounded-xl border border-zinc-800">
+                  <h4 className="text-xs font-bold text-amber-500 uppercase tracking-wider">The Adventure & Eco-Club</h4>
+                  <p className="text-xs text-zinc-400 mt-2">Local Western Ghat ecosystem treks, medicinal plant cataloging, and birdwatching trails around Babbur farms.</p>
+                  <span className="inline-block text-[10px] bg-zinc-800 text-zinc-400 rounded px-2 py-0.5 mt-4">Lead: Dr. S.K. Manjunatha</span>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        )}
+
+
+        {/* ==================== PAGE: ABOUT COH ==================== */}
+        {currentPage === 'ABOUT COH' && (
+          <div className="space-y-8 animate-fade-in">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              
+              {/* Mission Statement Block */}
+              <div className="lg:col-span-2 space-y-6">
+                <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+                  <h3 className="text-base font-bold text-white tracking-wide uppercase mb-3">Our Core Educational Blueprint</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                    <div className="p-4 bg-[#1e1d1a] border border-amber-500/10 rounded-lg">
+                      <span className="text-xs font-black text-amber-500 uppercase block tracking-wider">Vision</span>
+                      <p className="text-xs text-zinc-400 mt-1 leading-relaxed">To be a globally recognized institute of excellence in Horticultural learning, sustainable agriculture mechanics, and regional farm support.</p>
+                    </div>
+                    <div className="p-4 bg-[#1e1d1a] border border-amber-500/10 rounded-lg">
+                      <span className="text-xs font-black text-amber-500 uppercase block tracking-wider">Mission</span>
+                      <p className="text-xs text-zinc-400 mt-1 leading-relaxed">Imparting practical-centric undergraduate training, implementing recommendations of the Sixth Deans Committee of ICAR, and optimizing value chains.</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* College Timeline */}
+                <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+                  <h3 className="text-base font-bold text-white tracking-wide uppercase mb-6">Chronology of Development</h3>
+                  <div className="space-y-6 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-[1px] before:bg-zinc-850">
+                    
+                    <div className="relative pl-8">
+                      <span className="absolute left-1.5 top-1.5 w-3.5 h-3.5 rounded-full bg-amber-500 border-4 border-[#121212]"></span>
+                      <span className="text-xs font-bold text-amber-500 font-mono">1984</span>
+                      <h4 className="text-xs font-bold text-white uppercase tracking-wider mt-1">Foundation Year</h4>
+                      <p className="text-xs text-zinc-400 leading-tight">First established under regional agrarian development acts to support the central dry zone requirements.</p>
+                    </div>
+
+                    <div className="relative pl-8">
+                      <span className="absolute left-1.5 top-1.5 w-3.5 h-3.5 rounded-full bg-amber-500 border-4 border-[#121212]"></span>
+                      <span className="text-xs font-bold text-amber-500 font-mono">2007</span>
+                      <h4 className="text-xs font-bold text-white uppercase tracking-wider mt-1">Acquisition & Merges</h4>
+                      <p className="text-xs text-zinc-400 leading-tight">Reconfigured as constituent college under the purview of Sri Konda Laxman Telangana Horticultural University.</p>
+                    </div>
+
+                    <div className="relative pl-8">
+                      <span className="absolute left-1.5 top-1.5 w-3.5 h-3.5 rounded-full bg-amber-500 border-4 border-[#121212]"></span>
+                      <span className="text-xs font-bold text-amber-500 font-mono">2024</span>
+                      <h4 className="text-xs font-bold text-white uppercase tracking-wider mt-1">ICAR Sixth Deans Mandate</h4>
+                      <p className="text-xs text-zinc-400 leading-tight">Upgraded curriculum structure incorporating advanced digital modeling and high-tech controlled polyhouse ecosystems.</p>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+
+              {/* Sidebar Quick Contact Map */}
+              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 h-fit space-y-6">
+                <div>
+                  <h3 className="font-bold text-white text-xs tracking-wider uppercase mb-1">Administrative Office</h3>
+                  <p className="text-xs text-zinc-500">Reach the main office coordinates for transcript submissions or admissions.</p>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-start gap-2 text-xs">
+                    <MapPin className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                    <span className="text-zinc-300">College of Horticulture, Rajendranagar Campus, Hyderabad, Telangana - 500030</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <Phone className="w-4 h-4 text-amber-500" />
+                    <span className="text-zinc-300">+91 99515 56308</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <Mail className="w-4 h-4 text-amber-500" />
+                    <span className="text-zinc-300">cohrnagar@gmail.com</span>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-zinc-800 text-center">
+                  <span className="text-[10px] bg-amber-500/10 text-amber-400 font-extrabold tracking-widest uppercase px-3 py-1 rounded block">
+                    Admissions Open 2026-27
+                  </span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        )}
+
+
+        {/* ==================== PAGE: DEPARTMENTS ==================== */}
+        {currentPage === 'DEPARTMENTS' && (
+          <div className="space-y-8 animate-fade-in">
+            {/* Filter buttons */}
+            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-wrap gap-2">
+              {['All', 'Fruit Science', 'Vegetable Science', 'Floriculture & Landscaping', 'Plant Protection', 'Post-Harvest Management'].map((dept) => (
+                <button
+                  key={dept}
+                  onClick={() => setSelectedDept(dept)}
+                  className={`text-xs px-3 py-1.5 rounded-lg font-semibold transition ${
+                    selectedDept === dept 
+                      ? 'bg-amber-500 text-black' 
+                      : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300'
+                  }`}
+                >
+                  {dept}
+                </button>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[
+                { title: 'Fruit Science', code: 'DEPT-FS', staff: '8 Academic Staff', courses: ['Fundamentals of Pomology', 'Subtropical Orchard Systems', 'Propagation Technology'], desc: 'Analyzing the physiology of heavy cropping systems, macro-nutrient requirements, and high-density planting of mangoes and support flora.' },
+                { title: 'Vegetable Science', code: 'DEPT-VS', staff: '6 Academic Staff', courses: ['Olericulture Principles', 'Exotic Vegetable Production', 'Hydroponics Layout'], desc: 'Comprehensive studies in organic crop rotation, climate adaptations of brassicas, and drip line chemical management.' },
+                { title: 'Floriculture & Landscaping', code: 'DEPT-FL', staff: '5 Academic Staff', courses: ['Ornamental Garden Design', 'Commercial Floriculture', 'CAD Landscape Architecture'], desc: 'Designing modern botanical parks, turfing management in extreme drought, and commercial cultivation of exotic cut flowers.' },
+                { title: 'Plant Protection', code: 'DEPT-PP', staff: '9 Academic Staff', courses: ['Entomological Diagnostics', 'Mycology & Plant Pathology', 'Biological Pest Controls'], desc: 'Discovering disease-resistant pathogens, organic biological crop sprays, and pest population life cycles.' },
+                { title: 'Post-Harvest Management', code: 'DEPT-PHM', staff: '4 Academic Staff', courses: ['Controlled Transit Systems', 'Packaging Science', 'Value-Addition & Food Tech'], desc: 'Preventing waste loss in supply-chain transit, cold-room optimization, and conversion of raw fruit into shelf-stable components.' }
+              ]
+              .filter(item => selectedDept === 'All' || item.title === selectedDept)
+              .map((item, index) => (
+                <div key={index} className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 hover:border-amber-500/30 transition">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-base font-bold text-white uppercase tracking-wider">{item.title}</h3>
+                    <span className="text-[10px] bg-zinc-850 font-mono text-amber-500 px-2 py-0.5 rounded">{item.code}</span>
+                  </div>
+                  <p className="text-xs text-zinc-400 mb-4">{item.desc}</p>
+                  
+                  <div className="space-y-2 border-t border-zinc-850 pt-4">
+                    <span className="text-[10px] text-zinc-500 font-extrabold uppercase tracking-widest block">Featured Curriculum:</span>
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-zinc-300">
+                      {item.courses.map((c, i) => (
+                        <li key={i} className="flex items-center gap-1.5">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                          <span>{c}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="flex justify-between items-center mt-6 pt-4 border-t border-zinc-850 text-xs">
+                    <span className="text-zinc-500">{item.staff}</span>
+                    <button onClick={() => triggerToast(`Requesting brochure for ${item.title}...`, 'info')} className="text-amber-500 hover:underline">Download Brochure →</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+
+        {/* ==================== PAGE: GALLERY ==================== */}
+        {currentPage === 'GALLERY' && (
+          <div className="space-y-8 animate-fade-in">
+            {/* Filter Buttons */}
+            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-wrap gap-2">
+              {['All', 'Campus Landscapes', 'Laboratory Work', 'Cultural Festivals', 'Sports Tournaments'].map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedGalleryCategory(cat)}
+                  className={`text-xs px-3 py-1.5 rounded-lg font-semibold transition ${
+                    selectedGalleryCategory === cat 
+                      ? 'bg-amber-500 text-black' 
+                      : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            {/* Simulated Gallery Grid utilizing elegant vector patterns/placeholders */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {galleryImages
+                .filter(img => selectedGalleryCategory === 'All' || img.category === selectedGalleryCategory)
+                .map((img, idx) => (
+                  <div key={idx} className="bg-zinc-900 border border-zinc-850 rounded-xl overflow-hidden hover:border-zinc-700 transition group flex flex-col justify-between">
+                    
+                    {/* Rich Decorative Mock Image Container */}
+                    <div className="h-44 bg-gradient-to-br from-amber-650/20 via-zinc-900 to-black relative flex items-center justify-center overflow-hidden border-b border-zinc-850">
+                      <ImageIcon className="w-12 h-12 text-zinc-700 absolute opacity-30" />
+                      
+                      {/* Generative UI Pattern background representation */}
+                      <div className="absolute inset-0 bg-[radial-gradient(#d97706_1px,transparent_1px)] [background-size:16px_16px] opacity-10"></div>
+                      
+                      <span className="absolute bottom-3 left-3 text-[10px] bg-black/80 border border-zinc-800 text-zinc-400 px-2 py-0.5 rounded tracking-wide">
+                        {img.category}
+                      </span>
+                    </div>
+
+                    <div className="p-4">
+                      <h4 className="text-xs font-bold text-white uppercase tracking-wider group-hover:text-amber-400 transition-colors">{img.title}</h4>
+                      <p className="text-xs text-zinc-400 mt-1">{img.desc}</p>
+                    </div>
+
+                    <div className="px-4 pb-4 pt-2 border-t border-zinc-850 text-right">
+                      <button 
+                        onClick={() => triggerToast(`Previewing "${img.title}" high-resolution capture.`, "info")} 
+                        className="text-[11px] text-zinc-500 hover:text-amber-400 font-bold tracking-wider uppercase transition-colors"
+                      >
+                        View Large Photo
+                      </button>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
+
+
+        {/* ==================== PAGE: FACULTY ==================== */}
+        {currentPage === 'FACULTY' && (
+          <div className="space-y-8 animate-fade-in">
+            
+            {/* Filter controls */}
+            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                {['All', 'Academic Officers', 'Department HOD', 'Research Specialists', 'Administration Staff'].map((role) => (
+                  <button
+                    key={role}
+                    onClick={() => setSelectedFacultyRole(role)}
+                    className={`text-xs px-3 py-1.5 rounded-lg font-semibold transition ${
+                      selectedFacultyRole === role 
+                        ? 'bg-amber-500 text-black' 
+                        : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300'
+                    }`}
+                  >
+                    {role}
+                  </button>
+                ))}
+              </div>
+
+              {/* Instant Query Filter */}
+              <div className="relative w-full sm:w-64 shrink-0">
+                <Search className="w-4 h-4 text-zinc-500 absolute left-3 top-2.5" />
+                <input 
+                  type="text" 
+                  placeholder="Search faculty name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full text-xs pl-9 pr-4 py-2 bg-zinc-950 border border-zinc-800 focus:border-amber-500 rounded-lg text-gray-100 placeholder-zinc-500 outline-none transition"
+                />
+              </div>
+            </div>
+
+            {/* Faculty List */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {facultyData
+                .filter(item => selectedFacultyRole === 'All' || item.role === selectedFacultyRole)
+                .filter(item => searchQuery === '' || item.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                .map((f, idx) => (
+                  <div key={idx} className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 hover:border-amber-500/30 transition flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-[9px] bg-amber-500/10 text-amber-400 font-extrabold tracking-widest px-2 py-0.5 rounded border border-amber-500/20">
+                          {f.role}
+                        </span>
+                        <span className="text-xs text-zinc-500 font-mono">ID: #{8400 + idx}</span>
+                      </div>
+                      <h4 className="text-xs font-black text-white uppercase tracking-wider">{f.name}</h4>
+                      <p className="text-[11px] text-amber-500 font-medium">{f.dept}</p>
+
+                      <p className="text-xs text-zinc-400 mt-3 border-t border-zinc-850 pt-3 italic">
+                        <span className="block text-[10px] text-zinc-500 not-italic font-extrabold uppercase tracking-widest mb-1">Focus Area:</span>
+                        "{f.research}"
+                      </p>
+                    </div>
+
+                    <div className="mt-6 pt-4 border-t border-zinc-850 flex items-center justify-between text-xs">
+                      <div className="text-zinc-500">
+                        <p>{f.email}</p>
+                      </div>
+                      <button 
+                        onClick={() => triggerToast(`Drafting meeting schedule request with ${f.name}.`, 'info')} 
+                        className="bg-zinc-850 text-zinc-300 hover:text-white px-2.5 py-1 rounded border border-zinc-800 text-[10px] font-bold uppercase transition"
+                      >
+                        Book Slot
+                      </button>
+                    </div>
+                  </div>
+                ))}
+            </div>
+
+          </div>
+        )}
+
+
+        {/* ==================== PAGE: ALUMNI ==================== */}
+        {currentPage === 'ALUMNI' && (
+          <div className="space-y-8 animate-fade-in">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              
+              {/* Left Form Box */}
+              <div className="lg:col-span-2 bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+                <h3 className="text-base font-bold text-white tracking-wide uppercase mb-1">Alumni Network & Registry</h3>
+                <p className="text-xs text-zinc-400 mb-6">Reconnect, collaborate, and mentor current students. Please populate this form to enter the dynamic campus registry database.</p>
+
+                <form onSubmit={handleAlumniSubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs text-zinc-400 font-bold uppercase tracking-wider mb-1">Full Name *</label>
+                      <input 
+                        type="text" 
+                        required
+                        value={alumniForm.name}
+                        onChange={(e) => setAlumniForm({ ...alumniForm, name: e.target.value })}
+                        className="w-full text-xs p-2.5 bg-zinc-950 border border-zinc-800 focus:border-amber-500 rounded-lg text-gray-100 outline-none transition"
+                        placeholder="John Doe"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-zinc-400 font-bold uppercase tracking-wider mb-1">Graduation Year (Batch) *</label>
+                      <input 
+                        type="text" 
+                        required
+                        value={alumniForm.batch}
+                        onChange={(e) => setAlumniForm({ ...alumniForm, batch: e.target.value })}
+                        className="w-full text-xs p-2.5 bg-zinc-950 border border-zinc-800 focus:border-amber-500 rounded-lg text-gray-100 outline-none transition"
+                        placeholder="e.g. 2018"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs text-zinc-400 font-bold uppercase tracking-wider mb-1">Course Specialized *</label>
+                      <input 
+                        type="text" 
+                        required
+                        value={alumniForm.course}
+                        onChange={(e) => setAlumniForm({ ...alumniForm, course: e.target.value })}
+                        className="w-full text-xs p-2.5 bg-zinc-950 border border-zinc-800 focus:border-amber-500 rounded-lg text-gray-100 outline-none transition"
+                        placeholder="e.g. B.Sc (Hons.) Pomology"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-zinc-400 font-bold uppercase tracking-wider mb-1">Current Occupation / Company</label>
+                      <input 
+                        type="text" 
+                        value={alumniForm.occupation}
+                        onChange={(e) => setAlumniForm({ ...alumniForm, occupation: e.target.value })}
+                        className="w-full text-xs p-2.5 bg-zinc-950 border border-zinc-800 focus:border-amber-500 rounded-lg text-gray-100 outline-none transition"
+                        placeholder="e.g. Senior Agronomist at EcoFarms"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-zinc-400 font-bold uppercase tracking-wider mb-1">Email Address *</label>
+                    <input 
+                      type="email" 
+                      required
+                      value={alumniForm.email}
+                      onChange={(e) => setAlumniForm({ ...alumniForm, email: e.target.value })}
+                      className="w-full text-xs p-2.5 bg-zinc-950 border border-zinc-800 focus:border-amber-500 rounded-lg text-gray-100 outline-none transition"
+                      placeholder="johndoe@alumni.com"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-zinc-400 font-bold uppercase tracking-wider mb-1">Message to Current Students</label>
+                    <textarea 
+                      rows="3"
+                      value={alumniForm.message}
+                      onChange={(e) => setAlumniForm({ ...alumniForm, message: e.target.value })}
+                      className="w-full text-xs p-2.5 bg-zinc-950 border border-zinc-800 focus:border-amber-500 rounded-lg text-gray-100 outline-none transition"
+                      placeholder="Share tips, career pathways, or potential collaboration requests..."
+                    ></textarea>
+                  </div>
+
+                  <button 
+                    type="submit"
+                    className="w-full bg-amber-500 hover:bg-amber-600 text-black text-xs font-bold py-2.5 rounded-lg transition-colors uppercase tracking-wider"
+                  >
+                    Submit Registry Form
+                  </button>
+                </form>
+              </div>
+
+              {/* Sidebar Alumni Spotlights */}
+              <div className="space-y-6">
+                <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+                  <h3 className="text-xs font-bold text-white tracking-widest uppercase mb-4 flex items-center gap-1.5">
+                    <TrendingUp className="w-4 h-4 text-amber-500" />
+                    Global Ambassadors
+                  </h3>
+                  
+                  <div className="space-y-4">
+                    <div className="bg-zinc-950 p-3.5 rounded-lg border border-zinc-850">
+                      <span className="text-[9px] text-amber-500 font-mono font-bold uppercase">Batch 2012</span>
+                      <h4 className="text-xs font-bold text-white uppercase tracking-wider mt-0.5">Dr. Sanjay Reddy</h4>
+                      <p className="text-[11px] text-zinc-400 mt-1">Postdoctoral Scientist at BioFlora Institute, Netherlands.</p>
+                    </div>
+
+                    <div className="bg-zinc-950 p-3.5 rounded-lg border border-zinc-850">
+                      <span className="text-[9px] text-amber-500 font-mono font-bold uppercase">Batch 2016</span>
+                      <h4 className="text-xs font-bold text-white uppercase tracking-wider mt-0.5">Miss Priya Chhabra</h4>
+                      <p className="text-[11px] text-zinc-400 mt-1">Managing Director, Organic Agro-Tech Solutions, India.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        )}
+
+
+        {/* ==================== PAGE: MAGAZINES ==================== */}
+        {currentPage === 'MAGAZINES' && (
+          <div className="space-y-8 animate-fade-in">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+              <h3 className="text-base font-bold text-white tracking-wide uppercase mb-2">University Magazines and Academic Chronicles</h3>
+              <p className="text-xs text-zinc-400">Interactive viewer for the latest academic publications. Select standard formats or scroll down to download PDF releases.</p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {magazinesList.map((mag, mIdx) => (
+                <div key={mIdx} className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden flex flex-col justify-between">
+                  <div>
+                    {/* Visual Magazine Cover Simulation */}
+                    <div className={`p-6 bg-gradient-to-br ${mag.coverColor} h-52 flex flex-col justify-between relative`}>
+                      <span className="text-xs uppercase font-mono tracking-widest text-white/75 bg-black/20 self-start px-2 py-0.5 rounded">
+                        {mag.year}
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-black tracking-wide text-white uppercase drop-shadow">{mag.title}</h4>
+                        <p className="text-[10px] text-amber-250 font-semibold drop-shadow">{mag.pages} Interactive Pages</p>
+                      </div>
+                      <BookOpen className="w-20 h-20 text-white/5 absolute right-4 bottom-4" />
+                    </div>
+
+                    <div className="p-4">
+                      <p className="text-xs text-zinc-400 leading-relaxed mb-4">{mag.description}</p>
+                      <div className="bg-zinc-950 p-3 rounded-lg border border-zinc-850 text-xs">
+                        <span className="text-[10px] text-zinc-500 font-bold uppercase block mb-1">Index Highlights:</span>
+                        <ul className="space-y-1 text-zinc-300">
+                          {mag.contents.map((c, cIdx) => (
+                            <li key={cIdx} className="flex items-center gap-1.5">
+                              <span className="w-1 h-1 rounded-full bg-amber-500"></span>
+                              <span>{c}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 border-t border-zinc-850 flex items-center justify-between">
+                    <button 
+                      onClick={() => setOpenMagazineIndex(openMagazineIndex === mIdx ? null : mIdx)} 
+                      className="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs py-1.5 px-3 rounded font-bold transition"
+                    >
+                      {openMagazineIndex === mIdx ? 'Close Book' : 'Read Inside'}
+                    </button>
+                    <span className="text-[11px] text-zinc-500">{mag.downloads} Downloads</span>
+                  </div>
+
+                  {openMagazineIndex === mIdx && (
+                    <div className="p-4 bg-zinc-950 border-t border-zinc-850 text-xs text-zinc-300 space-y-3 animate-fade-in">
+                      <p className="font-semibold text-amber-400">Virtual Pages (Interactive Preview):</p>
+                      <div className="bg-zinc-900 p-3 rounded border border-zinc-800 font-serif italic text-zinc-400 leading-relaxed">
+                        "The development of horticultural techniques hinges on soil science. Recent experiments at Babbur farm showcases a 20% moisture preservation rate under organic coir mulch protocols..."
+                      </div>
+                      <div className="flex justify-between items-center text-[10px] text-zinc-500">
+                        <span>Page 14 of {mag.pages}</span>
+                        <div className="flex gap-2">
+                          <button onClick={() => triggerToast("Simulated previous page view", "info")} className="hover:text-amber-500">Prev</button>
+                          <span>|</span>
+                          <button onClick={() => triggerToast("Simulated next page view", "info")} className="hover:text-amber-500">Next</button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+
+        {/* ==================== PAGE: DOWNLOADS ==================== */}
+        {currentPage === 'DOWNLOADS' && (
+          <div className="space-y-8 animate-fade-in">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+              <h3 className="text-base font-bold text-white tracking-wide uppercase mb-2">Digital Documents and Resource Center</h3>
+              <p className="text-xs text-zinc-400">Instantly download official university brochures, syllabus PDFs, and administrative exam files directly onto your device.</p>
+            </div>
+
+            <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-[#1b1a18] text-zinc-400 uppercase tracking-wider border-b border-zinc-800 text-[10px] font-bold">
+                      <th className="p-4">Document Title</th>
+                      <th className="p-4">Category</th>
+                      <th className="p-4">Size</th>
+                      <th className="p-4 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-zinc-850">
+                    {downloadsList.map((doc, idx) => {
+                      const isDownloading = simulatedDownloads[doc.title] !== undefined;
+                      const progress = simulatedDownloads[doc.title] || 0;
+
+                      return (
+                        <tr key={idx} className="hover:bg-zinc-850/30 transition-colors">
+                          <td className="p-4 font-semibold text-white">
+                            <div className="flex items-center gap-2">
+                              <FileText className="w-4 h-4 text-amber-500 shrink-0" />
+                              <span>{doc.title}</span>
+                            </div>
+                          </td>
+                          <td className="p-4 text-zinc-400">{doc.category}</td>
+                          <td className="p-4 font-mono text-zinc-500">{doc.size}</td>
+                          <td className="p-4 text-right">
+                            {isDownloading ? (
+                              <div className="inline-block w-28 text-left">
+                                <div className="text-[10px] text-amber-500 font-bold mb-1">Downloading {progress}%</div>
+                                <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                                  <div className="h-full bg-amber-500 transition-all duration-150" style={{ width: `${progress}%` }}></div>
+                                </div>
+                              </div>
+                            ) : (
+                              <button 
+                                onClick={() => handleDownload(doc.title)}
+                                className="bg-zinc-850 hover:bg-amber-500 hover:text-black border border-zinc-800 text-zinc-300 hover:border-transparent py-1.5 px-3 rounded font-bold transition flex items-center gap-1.5 ml-auto text-[10px] uppercase"
+                              >
+                                <Download className="w-3.5 h-3.5" />
+                                <span>Get File</span>
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+      </main>
+
+      {/* FOOTER SECTION */}
+      <footer className="bg-[#12110f] border-t border-zinc-900 mt-16 py-12 text-zinc-400 text-xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8">
+          
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <div className="bg-amber-500 p-1.5 rounded text-black">
+                <BookOpen className="w-4 h-4" />
+              </div>
+              <span className="font-bold text-white tracking-wider">COH PORTAL</span>
+            </div>
+            <p className="text-[11px] leading-relaxed text-zinc-500">
+              Approved constituent educational complex offering immersive degrees, experimental laboratories, and modern agricultural engineering platforms aligned with national ICAR standards.
+            </p>
+          </div>
+
+          <div>
+            <h4 className="font-bold text-white uppercase tracking-wider mb-4 text-[11px]">Academic Quick Links</h4>
+            <ul className="space-y-2">
+              <li><button onClick={() => handleNavClick('DEPARTMENTS', 'Fruit Science')} className="hover:text-amber-500 transition">Horticulture Pomology</button></li>
+              <li><button onClick={() => handleNavClick('DOWNLOADS', 'Academic Syllabus')} className="hover:text-amber-500 transition">6th Deans Curriculums</button></li>
+              <li><button onClick={() => handleNavClick('FACULTY', 'All Academics')} className="hover:text-amber-500 transition">Faculty Directories</button></li>
+              <li><button onClick={() => handleNavClick('ABOUT COH', 'Governing Council')} className="hover:text-amber-500 transition">Administrative Rules</button></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-bold text-white uppercase tracking-wider mb-4 text-[11px]">Union & Student Panels</h4>
+            <ul className="space-y-2">
+              <li><button onClick={() => handleNavClick('UNION PANEL', 'Student Executive Body')} className="hover:text-amber-500 transition">Varna-2026 Student Union</button></li>
+              <li><button onClick={() => handleNavClick('UNION PANEL', 'Clubs & Societies')} className="hover:text-amber-500 transition">Music & Theatre Clubs</button></li>
+              <li><button onClick={() => handleNavClick('UNION PANEL', 'Grievance Committee')} className="hover:text-amber-500 transition">Report Academic Grievances</button></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-bold text-white uppercase tracking-wider mb-4 text-[11px]">Admissions & Contact</h4>
+            <p className="text-[11px] leading-relaxed text-zinc-500 mb-2">
+              College of Horticulture, Rajendranagar Campus, Hyderabad, Telangana State, India.
+            </p>
+            <p className="font-mono text-[11px] text-amber-500">Call Support: +91 99515 56308</p>
+          </div>
+
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 pt-8 border-t border-zinc-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-zinc-650">
+          <p>© 2026 College of Horticulture, Rajendranagar. Under SKLTGHU administration. All rights reserved.</p>
+          <div className="flex gap-4">
+            <span className="hover:text-amber-500 cursor-pointer">Sitemap</span>
+            <span>|</span>
+            <span className="hover:text-amber-500 cursor-pointer">Privacy Policies</span>
+            <span>|</span>
+            <span className="hover:text-amber-500 cursor-pointer">Terms & Conditions</span>
+          </div>
+        </div>
+      </footer>
+
+    </div>
+  );
+}
